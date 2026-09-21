@@ -1,36 +1,163 @@
 import { useEffect, useState } from 'react'
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from 'react-router-dom'
+
 import { supabase } from './lib/supabaseClient'
+import StaffLayout from './layouts/StaffLayout'
+
+import Dashboard from './pages/Dashboard'
+import Beneficiaries from './pages/Beneficiaries'
+import Programs from './pages/Programs'
+import Donations from './pages/Donations'
+import Sponsorships from './pages/Sponsorships'
+import Expenses from './pages/Expenses'
+import Announcements from './pages/Announcements'
+import Users from './pages/Users'
+import Settings from './pages/Settings'
+
+import PublicLayout from './layouts/PublicLayout'
+import Home from './pages/Home'
+import About from './pages/About'
+import PublicPrograms from './pages/PublicPrograms'
+import Impact from './pages/Impact'
+import PublicAnnouncements from './pages/PublicAnnouncements'
+import Transparency from './pages/Transparency'
+import Contact from './pages/Contact'
+
 import './App.css'
+
+function Login({ onLogin }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    setError('')
+    setLoading(true)
+
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
+
+    onLogin(data.user)
+    setLoading(false)
+  }
+
+  return (
+    <div className="login-page">
+
+      <div className="login-card">
+
+        <h1>NGO Centralized</h1>
+
+        <p className="login-subtitle">
+          Financial Stewardship & Public Engagement
+        </p>
+
+        <form onSubmit={handleSubmit}>
+
+          <label htmlFor="email">
+            Email
+          </label>
+
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) =>
+              setEmail(event.target.value)
+            }
+            required
+          />
+
+          <label htmlFor="password">
+            Password
+          </label>
+
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(event) =>
+              setPassword(event.target.value)
+            }
+            required
+          />
+
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+  )
+}
+
+function ProtectedRoutes({ profile }) {
+  if (!profile) {
+    return <Navigate to="/login" replace />
+  }
+
+  return (
+    <StaffLayout profile={profile} />
+  )
+}
 
 function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loggingIn, setLoggingIn] = useState(false)
-
   useEffect(() => {
-    checkSession()
+    initializeAuth()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+    } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setSession(session)
 
-      if (!session) {
-        setProfile(null)
+        if (session?.user) {
+          await loadProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
       }
-    })
+    )
 
     return () => {
       subscription.unsubscribe()
     }
   }, [])
 
-  async function checkSession() {
+  async function initializeAuth() {
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -52,139 +179,138 @@ function App() {
       .single()
 
     if (error) {
-      console.error('Profile error:', error)
-      setError('Could not load your user profile.')
+      console.error(error)
+      setProfile(null)
       return
     }
 
     setProfile(data)
   }
 
-  async function handleLogin(event) {
-    event.preventDefault()
-
-    setError('')
-    setLoggingIn(true)
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoggingIn(false)
-      return
-    }
-
-    if (data.user) {
-      await loadProfile(data.user.id)
-    }
-
-    setLoggingIn(false)
-  }
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    setSession(null)
-    setProfile(null)
-  }
-
   if (loading) {
     return (
-      <div className="app">
-        <div className="loading">
-          Loading NGO Centralized...
-        </div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return (
-      <div className="login-page">
-        <div className="login-card">
-          <h1>NGO Centralized</h1>
-
-          <p className="login-subtitle">
-            Financial Stewardship & Public Engagement
-          </p>
-
-          <form onSubmit={handleLogin}>
-            <label htmlFor="email">Email</label>
-
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-
-            <label htmlFor="password">Password</label>
-
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-
-            <button type="submit" disabled={loggingIn}>
-              {loggingIn ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-        </div>
+      <div className="loading">
+        Loading NGO Centralized...
       </div>
     )
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <div>
-          <h1>NGO Centralized</h1>
-          <p>Staff Portal</p>
-        </div>
+    <BrowserRouter>
 
-        <button onClick={handleLogout}>
-          Sign Out
-        </button>
-      </header>
+      <Routes>
 
-      <main className="dashboard-content">
-        <h2>Welcome, {profile?.full_name || 'User'}!</h2>
+        <Route
+          path="/login"
+          element={
+            session
+              ? <Navigate to="/dashboard" replace />
+              : (
+                <Login
+                  onLogin={(user) =>
+                    loadProfile(user.id)
+                  }
+                />
+              )
+          }
+        />
 
-        <div className="profile-card">
-          <p>
-            <strong>Role:</strong>{' '}
-            {profile?.role || 'Unknown'}
-          </p>
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route
+            path="/public-programs"
+            element={<PublicPrograms />}
+          />
+          <Route path="/impact" element={<Impact />} />
 
-          <p>
-            <strong>Email:</strong>{' '}
-            {session.user.email}
-          </p>
-        </div>
+          <Route
+            path="/public-announcements"
+            element={<PublicAnnouncements />}
+          />
 
-        <div className="coming-soon">
-          <h3>Dashboard Coming Next</h3>
-          <p>
-            Your role-based NGO management dashboard will
-            be built here.
-          </p>
-        </div>
-      </main>
-    </div>
+          <Route
+            path="/transparency"
+            element={<Transparency />}
+          />
+          
+          <Route path="/contact" element={<Contact />} />
+        </Route>
+
+        <Route
+          element={
+            <ProtectedRoutes
+              profile={profile}
+            />
+          }
+        >
+
+          <Route
+            path="/dashboard"
+            element={
+              <Dashboard profile={profile} />
+            }
+          />
+
+          <Route
+            path="/beneficiaries"
+            element={<Beneficiaries profile={profile} />}
+          />
+
+          <Route
+            path="/programs"
+            element={<Programs profile={profile} />}
+          />
+
+          <Route
+            path="/donations"
+            element={<Donations profile={profile} />}
+          />
+
+          <Route
+            path="/sponsorships"
+            element={<Sponsorships profile={profile} />}
+          />
+
+          <Route
+            path="/expenses"
+            element={<Expenses profile={profile} />}
+          />
+
+          <Route
+            path="/announcements"
+            element={<Announcements profile={profile} />}
+          />
+
+          <Route
+            path="/users"
+            element={<Users />}
+          />
+
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
+
+        </Route>
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to={
+                session
+                  ? '/dashboard'
+                  : '/login'
+              }
+              replace
+            />
+          }
+        />
+
+      </Routes>
+
+    </BrowserRouter>
   )
 }
 
