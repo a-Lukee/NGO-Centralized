@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabaseclient'
+import { supabase } from '../lib/supabaseClient'
 
 function StaffLayout({ profile }) {
   const navigate = useNavigate()
@@ -8,6 +8,11 @@ function StaffLayout({ profile }) {
     await supabase.auth.signOut()
     navigate('/login')
   }
+
+  const isAdmin = profile?.role === 'admin'
+  const isFinance = profile?.role === 'finance'
+  const isProgramCoordinator =
+    profile?.role === 'program_coordinator'
 
   return (
     <div className="staff-layout">
@@ -25,35 +30,45 @@ function StaffLayout({ profile }) {
             Dashboard
           </NavLink>
 
-          <NavLink to="/beneficiaries">
-            Beneficiaries
-          </NavLink>
+          {(isAdmin || isProgramCoordinator) && (
+            <>
+              <NavLink to="/beneficiaries">
+                Beneficiaries
+              </NavLink>
 
-          <NavLink to="/programs">
-            Programs
-          </NavLink>
+              <NavLink to="/programs">
+                Programs
+              </NavLink>
+            </>
+          )}
 
-          <div className="nav-section">
-            Financial Management
-          </div>
+          {(isAdmin || isFinance) && (
+            <>
+              <div className="nav-section">
+                Financial Management
+              </div>
 
-          <NavLink to="/donations">
-            Donations
-          </NavLink>
+              <NavLink to="/donations">
+                Donations
+              </NavLink>
 
-          <NavLink to="/sponsorships">
-            Sponsorships
-          </NavLink>
+              <NavLink to="/sponsorships">
+                Sponsorships
+              </NavLink>
 
-          <NavLink to="/expenses">
-            Expenses
-          </NavLink>
+              <NavLink to="/expenses">
+                Expenses
+              </NavLink>
+            </>
+          )}
 
-          <NavLink to="/announcements">
-            Announcements
-          </NavLink>
+          {(isAdmin || isProgramCoordinator) && (
+            <NavLink to="/announcements">
+              Announcements
+            </NavLink>
+          )}
 
-          {profile?.role === 'admin' && (
+          {isAdmin && (
             <NavLink to="/users">
               Users
             </NavLink>

@@ -120,14 +120,19 @@ function Login({ onLogin }) {
   )
 }
 
-function ProtectedRoutes({ profile }) {
+function ProtectedRoutes({ profile, allowedRoles }) {
   if (!profile) {
     return <Navigate to="/login" replace />
   }
 
-  return (
-    <StaffLayout profile={profile} />
-  )
+  if (
+    allowedRoles &&
+    !allowedRoles.includes(profile.role)
+  ) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <StaffLayout profile={profile} />
 }
 
 function App() {
@@ -238,61 +243,108 @@ function App() {
         </Route>
 
         <Route
-          element={
-            <ProtectedRoutes
-              profile={profile}
-            />
-          }
-        >
+  element={
+    <ProtectedRoutes
+      profile={profile}
+      allowedRoles={[
+        'admin',
+        'finance',
+        'program_coordinator'
+      ]}
+    />
+  }
+>
+  <Route
+    path="/dashboard"
+    element={<Dashboard profile={profile} />}
+  />
+</Route>
 
-          <Route
-            path="/dashboard"
-            element={
-              <Dashboard profile={profile} />
-            }
-          />
+<Route
+  element={
+    <ProtectedRoutes
+      profile={profile}
+      allowedRoles={[
+        'admin',
+        'program_coordinator'
+      ]}
+    />
+  }
+>
+  <Route
+    path="/beneficiaries"
+    element={<Beneficiaries profile={profile} />}
+  />
 
-          <Route
-            path="/beneficiaries"
-            element={<Beneficiaries profile={profile} />}
-          />
+  <Route
+    path="/programs"
+    element={<Programs profile={profile} />}
+  />
 
-          <Route
-            path="/programs"
-            element={<Programs profile={profile} />}
-          />
+  <Route
+    path="/announcements"
+    element={<Announcements profile={profile} />}
+  />
+</Route>
 
-          <Route
-            path="/donations"
-            element={<Donations profile={profile} />}
-          />
+<Route
+  element={
+    <ProtectedRoutes
+      profile={profile}
+      allowedRoles={[
+        'admin',
+        'finance'
+      ]}
+    />
+  }
+>
+  <Route
+    path="/donations"
+    element={<Donations profile={profile} />}
+  />
 
-          <Route
-            path="/sponsorships"
-            element={<Sponsorships profile={profile} />}
-          />
+  <Route
+    path="/sponsorships"
+    element={<Sponsorships profile={profile} />}
+  />
 
-          <Route
-            path="/expenses"
-            element={<Expenses profile={profile} />}
-          />
+  <Route
+    path="/expenses"
+    element={<Expenses profile={profile} />}
+  />
+</Route>
 
-          <Route
-            path="/announcements"
-            element={<Announcements profile={profile} />}
-          />
+<Route
+  element={
+    <ProtectedRoutes
+      profile={profile}
+      allowedRoles={['admin']}
+    />
+  }
+>
+  <Route
+    path="/users"
+    element={<Users profile={profile} />}
+  />
+</Route>
 
-          <Route
-            path="/users"
-            element={<Users />}
-          />
-
-          <Route
-            path="/settings"
-            element={<Settings />}
-          />
-
-        </Route>
+<Route
+  element={
+    <ProtectedRoutes
+      profile={profile}
+      allowedRoles={[
+        'admin',
+        'finance',
+        'program_coordinator'
+      ]}
+    />
+  }
+>
+  <Route
+    path="/settings"
+    element={<Settings profile={profile} />}
+  />
+</Route>
 
         <Route
           path="*"
