@@ -146,12 +146,10 @@ function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session)
 
-        if (session?.user) {
-          await loadProfile(session.user.id)
-        } else {
+        if (!session?.user) {
           setProfile(null)
         }
       }
