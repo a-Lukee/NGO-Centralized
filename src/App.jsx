@@ -201,7 +201,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/NGO-Centralized">
 
       <Routes>
 
