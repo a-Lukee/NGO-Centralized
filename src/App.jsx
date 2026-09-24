@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  BrowserRouter,
+  HashRouter,
   Navigate,
   Route,
   Routes,
@@ -54,7 +54,7 @@ function Login({ onLogin }) {
       return
     }
 
-    onLogin(data.user)
+    await onLogin(data.user)
     setLoading(false)
   }
 
@@ -201,7 +201,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter basename="/NGO-Centralized">
+    <HashRouter>
 
       <Routes>
 
@@ -362,7 +362,7 @@ function App() {
 
       </Routes>
 
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
