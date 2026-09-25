@@ -1,10 +1,17 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 
 function StaffLayout({ profile }) {
   const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  function closeSidebar() {
+    setSidebarOpen(false)
+  }
 
   async function handleLogout() {
+    setSidebarOpen(false)
     await supabase.auth.signOut()
     navigate('/login')
   }
@@ -16,27 +23,67 @@ function StaffLayout({ profile }) {
 
   return (
     <div className="staff-layout">
+      <header className="mobile-staff-header">
+        <div>
+          <strong>NGO Centralized</strong>
+          <span>Staff Portal</span>
+        </div>
 
-      <aside className="sidebar">
+      <button
+        type="button"
+        className="mobile-menu-button"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open navigation"
+        aria-expanded={sidebarOpen}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </header>
+
+    {sidebarOpen && (
+      <button
+        type="button"
+        className="sidebar-backdrop"
+        onClick={closeSidebar}
+        aria-label="Close navigation"
+      />
+    )}
+
+      <aside
+        className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}
+      >
 
         <div className="sidebar-brand">
-          <h2>NGO Centralized</h2>
-          <span>Staff Portal</span>
+          <div>
+            <h2>NGO Centralized</h2>
+            <span>Staff Portal</span>
+          </div>
+
+          <button
+            type="button"
+            className="sidebar-close-button"
+            onClick={closeSidebar}
+            aria-label="Close navigation"
+          >
+            ×
+          </button>
         </div>
 
         <nav>
 
-          <NavLink to="/dashboard">
+          <NavLink to="/dashboard" onClick={closeSidebar}>
             Dashboard
           </NavLink>
 
           {(isAdmin || isProgramCoordinator) && (
             <>
-              <NavLink to="/beneficiaries">
+              <NavLink to="/beneficiaries" onClick={closeSidebar}>
                 Beneficiaries
               </NavLink>
 
-              <NavLink to="/programs">
+              <NavLink to="/programs" onClick={closeSidebar}>
                 Programs
               </NavLink>
             </>
@@ -48,33 +95,33 @@ function StaffLayout({ profile }) {
                 Financial Management
               </div>
 
-              <NavLink to="/donations">
+              <NavLink to="/donations" onClick={closeSidebar}>
                 Donations
               </NavLink>
 
-              <NavLink to="/sponsorships">
+              <NavLink to="/sponsorships" onClick={closeSidebar}>
                 Sponsorships
               </NavLink>
 
-              <NavLink to="/expenses">
+              <NavLink to="/expenses" onClick={closeSidebar}>
                 Expenses
               </NavLink>
             </>
           )}
 
           {(isAdmin || isProgramCoordinator) && (
-            <NavLink to="/announcements">
+            <NavLink to="/announcements" onClick={closeSidebar}>
               Announcements
             </NavLink>
           )}
 
           {isAdmin && (
-            <NavLink to="/users">
+            <NavLink to="/users" onClick={closeSidebar}>
               Users
             </NavLink>
           )}
 
-          <NavLink to="/settings">
+          <NavLink to="/settings" onClick={closeSidebar}>
             Settings
           </NavLink>
 

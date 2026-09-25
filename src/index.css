@@ -1,9 +1,90 @@
+:root {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  color: #1d2939;
+  background: #f6f8fa;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  --color-primary: #176b52;
+  --color-primary-hover: #125a45;
+  --color-primary-soft: #eaf5f1;
+
+  --color-text: #1d2939;
+  --color-text-secondary: #667085;
+  --color-text-muted: #98a2b3;
+
+  --color-background: #f6f8fa;
+  --color-surface: #ffffff;
+  --color-border: #e4e7ec;
+  --color-border-light: #f0f2f5;
+
+  --color-success: #16794c;
+  --color-success-bg: #ecfdf3;
+
+  --color-danger: #b42318;
+  --color-danger-bg: #fef3f2;
+
+  --color-warning: #b54708;
+  --color-warning-bg: #fffaeb;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm:
+    0 1px 2px rgba(16, 24, 40, 0.04);
+
+  --shadow-md:
+    0 4px 12px rgba(16, 24, 40, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
   min-height: 100%;
 }
 
+html {
+  background: var(--color-background);
+}
+
 body {
   margin: 0;
+  min-width: 320px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(23, 107, 82, 0.18);
+  outline-offset: 2px;
 }
