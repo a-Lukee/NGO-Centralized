@@ -424,27 +424,55 @@ function Announcements({ profile }) {
       </div>
 
       {success && (
-        <div className="success-message">
-          {success}
-        </div>
-      )}
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
       {canManage && (
         <form
           className="form-card"
           onSubmit={handleSubmit}
         >
-          <h2>
-            {editingId
-              ? 'Edit Announcement'
-              : 'Create Announcement'}
-          </h2>
+          <div className="form-card-header">
+  <div>
+    <h2>
+      {editingId
+        ? 'Edit Announcement'
+        : 'Create Announcement'}
+    </h2>
+
+    <p>
+      {editingId
+        ? 'Update the announcement details and publishing status.'
+        : 'Create an update that can be published on the public website.'}
+    </p>
+  </div>
+
+  {editingId && (
+    <span className="editing-badge">
+      Editing
+    </span>
+  )}
+</div>
 
           <div className="form-group">
             <label htmlFor="announcement-title">
@@ -505,64 +533,116 @@ function Announcements({ profile }) {
             </div>
           )}
 
-          <div className="checkbox-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={published}
-                onChange={(event) =>
-                  setPublished(
-                    event.target.checked
-                  )
-                }
-              />
+          <div className="publish-control">
+  <label>
+    <input
+      type="checkbox"
+      checked={published}
+      onChange={(event) =>
+        setPublished(event.target.checked)
+      }
+    />
 
-              Publish announcement
-            </label>
-          </div>
+    <span>
+      <strong>Publish announcement</strong>
+      <small>
+        Published announcements are visible on the public website.
+      </small>
+    </span>
+  </label>
+</div>
 
           <div className="form-actions">
-            <button
-              type="submit"
-              disabled={saving}
-            >
-              {saving
-                ? 'Saving...'
-                : editingId
-                  ? 'Update Announcement'
-                  : 'Create Announcement'}
-            </button>
+  <button
+    type="submit"
+    className="primary-button"
+    disabled={saving}
+  >
+    {saving
+      ? 'Saving...'
+      : editingId
+        ? 'Update Announcement'
+        : 'Create Announcement'}
+  </button>
 
-            {editingId && (
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={resetForm}
-                disabled={saving}
-              >
-                Cancel
-              </button>
-            )}
-          </div>
+  {editingId && (
+    <button
+      type="button"
+      className="secondary-button"
+      onClick={resetForm}
+      disabled={saving}
+    >
+      Cancel
+    </button>
+  )}
+</div>
         </form>
       )}
 
       <div className="page-toolbar">
-        <input
-          type="text"
-          placeholder="Search announcements..."
-          value={searchTerm}
-          onChange={(event) =>
-            setSearchTerm(event.target.value)
-          }
-        />
-      </div>
+  <div className="search-field">
+    <input
+      type="search"
+      aria-label="Search announcements"
+      placeholder="Search announcements..."
+      value={searchTerm}
+      onChange={(event) =>
+        setSearchTerm(event.target.value)
+      }
+    />
+  </div>
+
+  {!loading && (
+    <span className="toolbar-count">
+      {filteredAnnouncements.length}{' '}
+      {filteredAnnouncements.length === 1
+        ? 'announcement'
+        : 'announcements'}
+    </span>
+  )}
+</div>
 
       {loading ? (
-        <p>Loading announcements...</p>
-      ) : filteredAnnouncements.length === 0 ? (
-        <p>No announcements found.</p>
-      ) : (
+  <div
+    className="content-state"
+    role="status"
+  >
+    <div className="loading-spinner"></div>
+
+    <div>
+      <strong>Loading announcements</strong>
+      <span>Please wait while we retrieve the latest records.</span>
+    </div>
+  </div>
+) : filteredAnnouncements.length === 0 ? (
+  <div className="content-state">
+    <div>
+      <strong>
+        {searchTerm
+          ? 'No matching announcements'
+          : 'No announcements yet'}
+      </strong>
+
+      <span>
+        {searchTerm
+          ? `No announcements match "${searchTerm}".`
+          : canManage
+            ? 'Create your first announcement using the form above.'
+            : 'There are currently no announcements to display.'}
+      </span>
+    </div>
+
+    {searchTerm && (
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => setSearchTerm('')}
+      >
+        Clear Search
+      </button>
+    )}
+  </div>
+) : (
         <div className="table-container">
           <table>
             <thead>
@@ -590,17 +670,17 @@ function Announcements({ profile }) {
                           className="announcement-thumbnail"
                         />
                       ) : (
-                        <span>
-                          No image
-                        </span>
+                        <span className="no-image-label">
+    No image
+  </span>
                       )}
                     </td>
 
-                    <td>
-                      <strong>
-                        {announcement.title}
-                      </strong>
-                    </td>
+                    <td className="announcement-title-cell">
+  <strong>
+    {announcement.title}
+  </strong>
+</td>
 
                     <td>
                       <span
@@ -634,6 +714,7 @@ function Announcements({ profile }) {
                         {canManage && (
                           <button
                             type="button"
+                            className="table-button"
                             onClick={() =>
                               handleEdit(
                                 announcement
@@ -647,7 +728,7 @@ function Announcements({ profile }) {
                         {canDelete && (
                           <button
                             type="button"
-                            className="danger-button"
+                            className="table-button danger"
                             onClick={() =>
                               handleDelete(
                                 announcement

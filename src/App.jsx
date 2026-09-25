@@ -178,7 +178,24 @@ function Login({ onLogin }) {
 )
 }
 
-function ProtectedRoutes({ profile, allowedRoles }) {
+function ProtectedRoutes({
+  session,
+  profile,
+  profileLoading,
+  allowedRoles,
+}) {
+  if (!session) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (profileLoading) {
+    return (
+      <div className="loading">
+        Loading your account...
+      </div>
+    )
+  }
+
   if (!profile) {
     return <Navigate to="/login" replace />
   }
@@ -197,21 +214,23 @@ function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
 
   useEffect(() => {
     initializeAuth()
 
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session)
+  data: { subscription },
+} = supabase.auth.onAuthStateChange(
+  (_event, newSession) => {
+    setSession(newSession)
 
-        if (!session?.user) {
-          setProfile(null)
-        }
-      }
-    )
+    if (!newSession?.user) {
+      setProfile(null)
+      setProfileLoading(false)
+    }
+  }
+)
 
     return () => {
       subscription.unsubscribe()
@@ -233,6 +252,9 @@ function App() {
   }
 
   async function loadProfile(userId) {
+  setProfileLoading(true)
+
+  try {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, role')
@@ -246,15 +268,10 @@ function App() {
     }
 
     setProfile(data)
+  } finally {
+    setProfileLoading(false)
   }
-
-  if (loading) {
-    return (
-      <div className="loading">
-        Loading NGO Centralized...
-      </div>
-    )
-  }
+}
 
   return (
     <HashRouter>
@@ -262,19 +279,25 @@ function App() {
       <Routes>
 
         <Route
-          path="/login"
-          element={
-            session
-              ? <Navigate to="/dashboard" replace />
-              : (
-                <Login
-                  onLogin={(user) =>
-                    loadProfile(user.id)
-                  }
-                />
-              )
-          }
-        />
+  path="/login"
+  element={
+    session && profile
+      ? <Navigate to="/dashboard" replace />
+      : session && profileLoading
+        ? (
+            <div className="loading">
+              Loading your account...
+            </div>
+          )
+        : (
+            <Login
+              onLogin={(user) =>
+                loadProfile(user.id)
+              }
+            />
+          )
+  }
+/>
 
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
@@ -301,7 +324,9 @@ function App() {
         <Route
   element={
     <ProtectedRoutes
-      profile={profile}
+      session={session}
+  profile={profile}
+  profileLoading={profileLoading}
       allowedRoles={[
         'admin',
         'finance',
@@ -319,7 +344,9 @@ function App() {
 <Route
   element={
     <ProtectedRoutes
+      session={session}
       profile={profile}
+      profileLoading={profileLoading}
       allowedRoles={[
         'admin',
         'program_coordinator'
@@ -346,7 +373,9 @@ function App() {
 <Route
   element={
     <ProtectedRoutes
+      session={session}
       profile={profile}
+      profileLoading={profileLoading}
       allowedRoles={[
         'admin',
         'finance'
@@ -373,7 +402,9 @@ function App() {
 <Route
   element={
     <ProtectedRoutes
+      session={session}
       profile={profile}
+      profileLoading={profileLoading}
       allowedRoles={['admin']}
     />
   }
@@ -387,7 +418,9 @@ function App() {
 <Route
   element={
     <ProtectedRoutes
+      session={session}
       profile={profile}
+      profileLoading={profileLoading}
       allowedRoles={[
         'admin',
         'finance',

@@ -2275,3 +2275,249 @@ input[type="file"]::file-selector-button:hover {
   color: #ffffff;
   background: var(--color-primary);
 }
+
+/* =========================================================
+   FEEDBACK MESSAGES
+   ========================================================= */
+
+.feedback-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin-bottom: 20px;
+  padding: 13px 15px;
+
+  border: 1px solid;
+  border-radius: 8px;
+
+  font-size: 13px;
+}
+
+.feedback-message > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.feedback-message strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.feedback-message span {
+  line-height: 1.5;
+}
+
+.feedback-success {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: #abefc6;
+}
+
+.feedback-error {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border-color: #fecdca;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 24px;
+}
+
+.form-card-header h2 {
+  margin: 0 0 5px;
+}
+
+.form-card-header p {
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.editing-badge {
+  flex-shrink: 0;
+
+  padding: 5px 9px;
+
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.publish-control {
+  margin-bottom: 22px;
+  padding: 14px 16px;
+
+  background: #f9fafb;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.publish-control label {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+
+  cursor: pointer;
+}
+
+.publish-control input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+
+  accent-color: var(--color-primary);
+}
+
+.publish-control label > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.publish-control strong {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.publish-control small {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 16px;
+}
+
+.search-field {
+  width: min(100%, 380px);
+}
+
+.search-field input {
+  width: 100%;
+  min-height: 40px;
+
+  padding: 9px 12px;
+
+  color: var(--color-text);
+  background: #ffffff;
+
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+
+  font: inherit;
+  font-size: 14px;
+}
+
+.search-field input:focus {
+  outline: none;
+
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 3px rgba(23, 107, 82, 0.1);
+}
+
+.toolbar-count {
+  flex-shrink: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 12px;
+}
+
+/* =========================================================
+   CONTENT STATES
+   ========================================================= */
+
+.content-state {
+  min-height: 180px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  padding: 32px 20px;
+
+  text-align: center;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.content-state > div:not(.loading-spinner) {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.content-state strong {
+  color: var(--color-text);
+
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.content-state span {
+  max-width: 420px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+
+  border: 2px solid #d0d5dd;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+
+  animation: content-spin 0.7s linear infinite;
+}
+
+@keyframes content-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation-duration: 1.5s;
+  }
+}
+
+.announcement-title-cell {
+  min-width: 220px;
+}
+
+.no-image-label {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
