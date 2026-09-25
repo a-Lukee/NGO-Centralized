@@ -1,36 +1,95 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 function PublicLayout() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  function closeMenu() {
+      setMenuOpen(false)
+  }
   return (
     <div className="public-layout">
       <header className="public-header">
-        <div className="public-header-inner">
-          <NavLink to="/" className="public-logo">
-            NGO Centralized
-          </NavLink>
+  <div className="public-header-inner">
+    <NavLink
+      to="/"
+      className="public-logo"
+      onClick={closeMenu}
+    >
+      NGO Centralized
+    </NavLink>
 
-          <nav className="public-nav">
-            <NavLink to="/">Home</NavLink>
-            <NavLink to="/about">About Us</NavLink>
-            <NavLink to="/public-programs">Programs</NavLink>
-            <NavLink to="/impact">Impact</NavLink>
-            <NavLink to="/public-announcements">
-              Announcements
-            </NavLink>
-            <NavLink to="/transparency">
-              Financial Transparency
-            </NavLink>
-            <NavLink to="/contact">Contact</NavLink>
-          </nav>
+    <button
+      type="button"
+      className="public-menu-button"
+      onClick={() => setMenuOpen((open) => !open)}
+      aria-label="Toggle navigation"
+      aria-expanded={menuOpen}
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
-          <NavLink
-            to="/login"
-            className="staff-login-link"
-          >
-            Staff Login
-          </NavLink>
-        </div>
-      </header>
+    <nav
+      className={`public-nav ${
+        menuOpen ? 'public-nav-open' : ''
+      }`}
+    >
+      <NavLink to="/" onClick={closeMenu}>
+        Home
+      </NavLink>
+
+      <NavLink to="/about" onClick={closeMenu}>
+        About Us
+      </NavLink>
+
+      <NavLink
+        to="/public-programs"
+        onClick={closeMenu}
+      >
+        Programs
+      </NavLink>
+
+      <NavLink to="/impact" onClick={closeMenu}>
+        Impact
+      </NavLink>
+
+      <NavLink
+        to="/public-announcements"
+        onClick={closeMenu}
+      >
+        Announcements
+      </NavLink>
+
+      <NavLink
+        to="/transparency"
+        onClick={closeMenu}
+      >
+        Financial Transparency
+      </NavLink>
+
+      <NavLink to="/contact" onClick={closeMenu}>
+        Contact
+      </NavLink>
+
+      <NavLink
+        to="/login"
+        className="mobile-staff-login-link"
+        onClick={closeMenu}
+      >
+        Staff Login
+      </NavLink>
+    </nav>
+
+    <NavLink
+      to="/login"
+      className="staff-login-link"
+    >
+      Staff Login
+    </NavLink>
+  </div>
+</header>
 
       <main className="public-main">
         <Outlet />
