@@ -59,65 +59,123 @@ function Login({ onLogin }) {
   }
 
   return (
-    <div className="login-page">
+  <div className="login-page">
+    <div className="login-shell">
 
-      <div className="login-card">
+      <section className="login-intro">
+        <div className="login-intro-content">
+          <span className="login-brand">NGO Centralized</span>
 
-        <h1>NGO Centralized</h1>
+          <div className="login-intro-copy">
+            <span className="login-eyebrow">
+              Centralized NGO Management
+            </span>
 
-        <p className="login-subtitle">
-          Financial Stewardship & Public Engagement
-        </p>
+            <h1>
+              Financial stewardship and public engagement in
+              one secure workspace.
+            </h1>
 
-        <form onSubmit={handleSubmit}>
+            <p>
+              Manage programs, beneficiaries, financial records,
+              announcements, and organizational information from
+              one centralized system.
+            </p>
+          </div>
 
-          <label htmlFor="email">
-            Email
-          </label>
+          <p className="login-intro-footer">
+            Authorized personnel access only
+          </p>
+        </div>
+      </section>
 
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) =>
-              setEmail(event.target.value)
-            }
-            required
-          />
+      <section className="login-form-section">
+        <div className="login-form-wrapper">
 
-          <label htmlFor="password">
-            Password
-          </label>
+          <div className="login-mobile-brand">
+            <strong>NGO Centralized</strong>
+            <span>Staff Portal</span>
+          </div>
 
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) =>
-              setPassword(event.target.value)
-            }
-            required
-          />
+          <div className="login-heading">
+            <span>Staff Portal</span>
+            <h2>Welcome back</h2>
+            <p>
+              Sign in with your authorized staff account to continue.
+            </p>
+          </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
+          <form
+            className="login-form"
+            onSubmit={handleSubmit}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+            <div className="login-field">
+              <label htmlFor="email">
+                Email address
+              </label>
 
-        </form>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) =>
+                  setEmail(event.target.value)
+                }
+                placeholder="name@organization.org"
+                autoComplete="email"
+                required
+              />
+            </div>
 
-      </div>
+            <div className="login-field">
+              <label htmlFor="password">
+                Password
+              </label>
+
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) =>
+                  setPassword(event.target.value)
+                }
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+
+            {error && (
+              <div
+                className="login-error"
+                role="alert"
+              >
+                {error}
+              </div>
+            )}
+
+            <button
+              className="login-submit"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <a
+            className="login-return"
+            href="#/"
+          >
+            ← Return to public site
+          </a>
+
+        </div>
+      </section>
 
     </div>
-  )
+  </div>
+)
 }
 
 function ProtectedRoutes({ profile, allowedRoles }) {
