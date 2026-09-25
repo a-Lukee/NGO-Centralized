@@ -2242,3 +2242,36 @@ input[type="file"]::file-selector-button:hover {
     font-size: 26px;
   }
 }
+
+.sidebar-public-link {
+  padding: 12px 14px;
+
+  border-top: 1px solid var(--color-border-light);
+}
+
+.sidebar-public-link a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 12px;
+
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.sidebar-public-link a:hover {
+  color: #ffffff;
+  background: var(--color-primary);
+}

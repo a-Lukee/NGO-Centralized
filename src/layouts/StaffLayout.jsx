@@ -127,6 +127,16 @@ function StaffLayout({ profile }) {
 
         </nav>
 
+        <div className="sidebar-public-link">
+          <NavLink
+            to="/"
+            onClick={closeSidebar}
+          >
+          <span>View Public Site</span>
+          <span aria-hidden="true">↗</span>
+          </NavLink>
+        </div>
+
         <div className="sidebar-footer">
 
           <div className="user-info">
