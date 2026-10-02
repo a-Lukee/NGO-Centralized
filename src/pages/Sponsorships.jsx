@@ -6,6 +6,7 @@ function Sponsorships({ profile }) {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [search, setSearch] = useState('')
 
@@ -58,6 +59,7 @@ function Sponsorships({ profile }) {
   }
 
   function openAddForm() {
+    setSuccess('')
     setEditingSponsorship(null)
 
     setFormData({
@@ -75,6 +77,7 @@ function Sponsorships({ profile }) {
   }
 
   function openEditForm(sponsorship) {
+    setSuccess('')
     setEditingSponsorship(sponsorship)
 
     setFormData({
@@ -120,10 +123,13 @@ function Sponsorships({ profile }) {
       return
     }
 
-    if (!formData.amount || Number(formData.amount) < 0) {
-      setError('Please enter a valid sponsorship amount.')
-      return
-    }
+    if (
+  !formData.amount ||
+  Number(formData.amount) <= 0
+) {
+  setError('Sponsorship amount must be greater than zero.')
+  return
+}
 
     setSaving(true)
     setError('')
@@ -179,9 +185,15 @@ function Sponsorships({ profile }) {
       }
     }
 
-    await loadSponsorships()
-    closeForm()
-    setSaving(false)
+    setSuccess(
+  editingSponsorship
+    ? 'Sponsorship updated successfully.'
+    : 'Sponsorship recorded successfully.'
+)
+
+await loadSponsorships()
+closeForm()
+setSaving(false)
   }
 
   async function handleDelete(sponsorship) {
@@ -192,6 +204,7 @@ function Sponsorships({ profile }) {
     if (!confirmed) return
 
     setError('')
+    setSuccess('')
 
     const { error } = await supabase
       .from('sponsorships')
@@ -204,6 +217,7 @@ function Sponsorships({ profile }) {
       return
     }
 
+    setSuccess('Sponsorship deleted successfully.')
     await loadSponsorships()
   }
 
@@ -263,45 +277,104 @@ function Sponsorships({ profile }) {
         )}
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {success && (
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
 
-      <div className="filters">
-        <input
-          type="text"
-          placeholder="Search sponsorships..."
-          value={search}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
-        />
-      </div>
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
-      <div className="dashboard-section">
-        <strong>
-          Showing {filteredSponsorships.length} sponsorship
-          {filteredSponsorships.length === 1 ? '' : 's'}
-        </strong>
+      <div className="page-toolbar sponsorships-toolbar">
+  <div className="search-field">
+    <input
+      type="search"
+      aria-label="Search sponsorships"
+      placeholder="Search sponsorships..."
+      value={search}
+      onChange={(event) =>
+        setSearch(event.target.value)
+      }
+    />
+  </div>
 
-        <span style={{ marginLeft: '20px' }}>
-          Total: {formatCurrency(totalSponsorships)}
-        </span>
-      </div>
+  {!loading && (
+    <div className="financial-toolbar-summary">
+      <span className="toolbar-count">
+        {filteredSponsorships.length}{' '}
+        {filteredSponsorships.length === 1
+          ? 'sponsorship'
+          : 'sponsorships'}
+      </span>
 
-      <div className="table-container">
+      <strong className="toolbar-total">
+        {formatCurrency(totalSponsorships)}
+      </strong>
+    </div>
+  )}
+</div>
+
         {loading ? (
-          <p className="empty-state">
-            Loading sponsorships...
-          </p>
-        ) : filteredSponsorships.length === 0 ? (
-          <p className="empty-state">
-            No sponsorships found.
-          </p>
-        ) : (
-          <table>
+  <div
+    className="content-state"
+    role="status"
+  >
+    <div className="loading-spinner"></div>
+
+    <div>
+      <strong>Loading sponsorships</strong>
+      <span>
+        Please wait while we retrieve the latest financial records.
+      </span>
+    </div>
+  </div>
+) : filteredSponsorships.length === 0 ? (
+  <div className="content-state">
+    <div>
+      <strong>
+        {search
+          ? 'No matching sponsorships'
+          : 'No sponsorships yet'}
+      </strong>
+
+      <span>
+        {search
+          ? 'No sponsorships match your current search.'
+          : canManage
+            ? 'Record your first sponsorship to get started.'
+            : 'There are currently no sponsorships to display.'}
+      </span>
+    </div>
+
+    {search && (
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => setSearch('')}
+      >
+        Clear Search
+      </button>
+    )}
+  </div>
+) : (
+  <div className="table-container">
+    <table>
             <thead>
               <tr>
                 <th>Sponsor</th>
@@ -316,14 +389,16 @@ function Sponsorships({ profile }) {
             <tbody>
               {filteredSponsorships.map((sponsorship) => (
                 <tr key={sponsorship.id}>
-                  <td>
+                  <td className="sponsorship-sponsor-cell">
                     <strong>
                       {sponsorship.sponsor_name}
                     </strong>
                   </td>
 
-                  <td>
-                    {formatCurrency(sponsorship.amount)}
+                  <td className="sponsorship-amount-cell">
+                    <strong>
+                      {formatCurrency(sponsorship.amount)}
+                    </strong>
                   </td>
 
                   <td>
@@ -334,8 +409,10 @@ function Sponsorships({ profile }) {
                       : '—'}
                   </td>
 
-                  <td>
-                    {sponsorship.description || '—'}
+                  <td className="sponsorship-description-cell">
+                    <strong>
+                      {sponsorship.description || '—'}
+                    </strong>
                   </td>
 
                   <td>
@@ -343,34 +420,39 @@ function Sponsorships({ profile }) {
                   </td>
 
                   <td>
-                    {canManage && (
-                      <button
-                        className="table-button"
-                        onClick={() =>
-                          openEditForm(sponsorship)
-                        }
-                      >
-                        Edit
-                      </button>
-                    )}
 
-                    {profile?.role === 'admin' && (
-                      <button
-                        className="table-button danger"
-                        onClick={() =>
-                          handleDelete(sponsorship)
-                        }
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
+                  <div className="action-buttons">
+    {canManage && (
+      <button
+        type="button"
+        className="table-button"
+        onClick={() =>
+          openEditForm(sponsorship)
+        }
+      >
+        Edit
+      </button>
+    )}
+
+    {profile?.role === 'admin' && (
+      <button
+        type="button"
+        className="table-button danger"
+        onClick={() =>
+          handleDelete(sponsorship)
+        }
+      >
+        Delete
+      </button>
+    )}
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+  </div>
+)}
 
       {showForm && (
         <div className="modal-overlay">
@@ -383,105 +465,93 @@ function Sponsorships({ profile }) {
               </h2>
 
               <button
-                className="close-button"
-                onClick={closeForm}
-              >
-                ×
-              </button>
+  type="button"
+  className="close-button"
+  onClick={closeForm}
+  aria-label="Close sponsorship form"
+>
+  ×
+</button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="sponsor_name">
-                Sponsor Name
-              </label>
+            <div className="form-group">
+  <label htmlFor="sponsor_name">
+    Sponsor Name
+  </label>
 
-              <input
-                id="sponsor_name"
-                name="sponsor_name"
-                type="text"
-                value={formData.sponsor_name}
-                onChange={handleChange}
-                placeholder="Enter sponsor name"
-                required
-              />
+  <input
+    id="sponsor_name"
+    name="sponsor_name"
+    type="text"
+    value={formData.sponsor_name}
+    onChange={handleChange}
+    placeholder="Enter sponsor name"
+    required
+  />
+</div>
 
-              <label htmlFor="amount">
-                Amount (PHP)
-              </label>
+<div className="form-group">
+  <label htmlFor="amount">
+    Amount (PHP)
+  </label>
 
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                placeholder="0.00"
-                required
-              />
+  <input
+    id="amount"
+    name="amount"
+    type="number"
+    min="0.01"
+    step="0.01"
+    value={formData.amount}
+    onChange={handleChange}
+    placeholder="0.00"
+    required
+  />
+</div>
 
-              <label htmlFor="sponsorship_date">
-                Sponsorship Date
-              </label>
+<div className="form-group">
+  <label htmlFor="sponsorship_date">
+    Sponsorship Date
+  </label>
 
-              <input
-                id="sponsorship_date"
-                name="sponsorship_date"
-                type="date"
-                value={formData.sponsorship_date}
-                onChange={handleChange}
-                required
-              />
+  <input
+    id="sponsorship_date"
+    name="sponsorship_date"
+    type="date"
+    value={formData.sponsorship_date}
+    onChange={handleChange}
+    required
+  />
+</div>
 
-              <label htmlFor="description">
-                Description
-              </label>
+<div className="form-group">
+  <label htmlFor="description">
+    Description
+  </label>
 
-              <input
-                id="description"
-                name="description"
-                type="text"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe the sponsorship"
-              />
+  <input
+    id="description"
+    name="description"
+    type="text"
+    value={formData.description}
+    onChange={handleChange}
+    placeholder="Describe the sponsorship"
+  />
+</div>
 
-              <label htmlFor="notes">
-                Notes
-              </label>
+<div className="form-group">
+  <label htmlFor="notes">
+    Notes
+  </label>
 
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Optional notes"
-                rows="5"
-              />
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={closeForm}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={saving}
-                >
-                  {saving
-                    ? 'Saving...'
-                    : editingSponsorship
-                      ? 'Save Changes'
-                      : 'Record Sponsorship'}
-                </button>
-              </div>
-            </form>
+  <textarea
+    id="notes"
+    name="notes"
+    value={formData.notes}
+    onChange={handleChange}
+    placeholder="Optional notes"
+    rows="5"
+  />
+</div>
           </div>
         </div>
       )}

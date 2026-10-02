@@ -6,6 +6,7 @@ function Donations({ profile }) {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [search, setSearch] = useState('')
 
@@ -59,6 +60,7 @@ function Donations({ profile }) {
   }
 
   function openAddForm() {
+    setSuccess('')
     setEditingDonation(null)
 
     setFormData({
@@ -77,6 +79,7 @@ function Donations({ profile }) {
   }
 
   function openEditForm(donation) {
+    setSuccess('')
     setEditingDonation(donation)
 
     setFormData({
@@ -123,10 +126,13 @@ function Donations({ profile }) {
       return
     }
 
-    if (!formData.amount || Number(formData.amount) < 0) {
-      setError('Please enter a valid donation amount.')
-      return
-    }
+    if (
+  !formData.amount ||
+  Number(formData.amount) <= 0
+) {
+  setError('Donation amount must be greater than zero.')
+  return
+}
 
     setSaving(true)
     setError('')
@@ -182,9 +188,15 @@ function Donations({ profile }) {
       }
     }
 
-    await loadDonations()
-    closeForm()
-    setSaving(false)
+    setSuccess(
+  editingDonation
+    ? 'Donation updated successfully.'
+    : 'Donation recorded successfully.'
+)
+
+await loadDonations()
+closeForm()
+setSaving(false)
   }
 
   async function handleDelete(donation) {
@@ -195,6 +207,7 @@ function Donations({ profile }) {
     if (!confirmed) return
 
     setError('')
+    setSuccess('')
 
     const { error } = await supabase
       .from('donations')
@@ -207,6 +220,7 @@ function Donations({ profile }) {
       return
     }
 
+    setSuccess('Donation deleted successfully.')
     await loadDonations()
   }
 
@@ -264,45 +278,105 @@ function Donations({ profile }) {
         )}
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {success && (
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
 
-      <div className="filters">
-        <input
-          type="text"
-          placeholder="Search donations..."
-          value={search}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
-        />
-      </div>
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
-      <div className="dashboard-section">
-        <strong>
-          Showing {filteredDonations.length} donation
-          {filteredDonations.length === 1 ? '' : 's'}
-        </strong>
+      <div className="page-toolbar donations-toolbar">
+  <div className="search-field">
+    <input
+      type="search"
+      aria-label="Search donations"
+      placeholder="Search donations..."
+      value={search}
+      onChange={(event) =>
+        setSearch(event.target.value)
+      }
+    />
+  </div>
 
-        <span style={{ marginLeft: '20px' }}>
-          Total: {formatCurrency(totalDonations)}
-        </span>
-      </div>
+  {!loading && (
+    <div className="donations-toolbar-summary">
+      <span className="toolbar-count">
+        {filteredDonations.length}{' '}
+        {filteredDonations.length === 1
+          ? 'donation'
+          : 'donations'}
+      </span>
 
-      <div className="table-container">
+      <strong className="toolbar-total">
+        {formatCurrency(totalDonations)}
+      </strong>
+    </div>
+  )}
+</div>
+
+      
         {loading ? (
-          <p className="empty-state">
-            Loading donations...
-          </p>
-        ) : filteredDonations.length === 0 ? (
-          <p className="empty-state">
-            No donations found.
-          </p>
-        ) : (
-          <table>
+  <div
+    className="content-state"
+    role="status"
+  >
+    <div className="loading-spinner"></div>
+
+    <div>
+      <strong>Loading donations</strong>
+      <span>
+        Please wait while we retrieve the latest financial records.
+      </span>
+    </div>
+  </div>
+) : filteredDonations.length === 0 ? (
+  <div className="content-state">
+    <div>
+      <strong>
+        {search
+          ? 'No matching donations'
+          : 'No donations yet'}
+      </strong>
+
+      <span>
+        {search
+          ? 'No donations match your current search.'
+          : canManage
+            ? 'Record your first donation to get started.'
+            : 'There are currently no donations to display.'}
+      </span>
+    </div>
+
+    {search && (
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => setSearch('')}
+      >
+        Clear Search
+      </button>
+    )}
+  </div>
+) : (
+  <div className="table-container">
+    <table>
             <thead>
               <tr>
                 <th>Donor</th>
@@ -318,15 +392,17 @@ function Donations({ profile }) {
             <tbody>
               {filteredDonations.map((donation) => (
                 <tr key={donation.id}>
-                  <td>
-                    <strong>
-                      {donation.donor_name}
-                    </strong>
-                  </td>
+                  <td className="donation-donor-cell">
+  <strong>
+    {donation.donor_name}
+  </strong>
+</td>
 
-                  <td>
-                    {formatCurrency(donation.amount)}
-                  </td>
+                  <td className="donation-amount-cell">
+  <strong>
+    {formatCurrency(donation.amount)}
+  </strong>
+</td>
 
                   <td>
                     {donation.donation_date
@@ -340,43 +416,47 @@ function Donations({ profile }) {
                     {donation.payment_method || '—'}
                   </td>
 
-                  <td>
-                    {donation.purpose || '—'}
-                  </td>
+                  <td className="donation-purpose-cell">
+  {donation.purpose || '—'}
+</td>
 
                   <td>
                     {donation.profiles?.full_name || '—'}
                   </td>
 
                   <td>
-                    {canManage && (
-                      <button
-                        className="table-button"
-                        onClick={() =>
-                          openEditForm(donation)
-                        }
-                      >
-                        Edit
-                      </button>
-                    )}
+  <div className="action-buttons">
+    {canManage && (
+      <button
+        type="button"
+        className="table-button"
+        onClick={() =>
+          openEditForm(donation)
+        }
+      >
+        Edit
+      </button>
+    )}
 
-                    {profile?.role === 'admin' && (
-                      <button
-                        className="table-button danger"
-                        onClick={() =>
-                          handleDelete(donation)
-                        }
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
+    {profile?.role === 'admin' && (
+      <button
+        type="button"
+        className="table-button danger"
+        onClick={() =>
+          handleDelete(donation)
+        }
+      >
+        Delete
+      </button>
+    )}
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        )}
-      </div>
+              </table>
+  </div>
+)}
 
       {showForm && (
         <div className="modal-overlay">
@@ -389,117 +469,118 @@ function Donations({ profile }) {
               </h2>
 
               <button
-                className="close-button"
-                onClick={closeForm}
-              >
-                ×
-              </button>
+  type="button"
+  className="close-button"
+  onClick={closeForm}
+  aria-label="Close donation form"
+>
+  ×
+</button>
             </div>
 
             <form onSubmit={handleSubmit}>
-              <label htmlFor="donor_name">
-                Donor Name
-              </label>
+              <div className="form-group">
+  <label htmlFor="donor_name">
+    Donor Name
+  </label>
 
-              <input
-                id="donor_name"
-                name="donor_name"
-                type="text"
-                value={formData.donor_name}
-                onChange={handleChange}
-                placeholder="Enter donor name"
-                required
-              />
+  <input
+    id="donor_name"
+    name="donor_name"
+    type="text"
+    value={formData.donor_name}
+    onChange={handleChange}
+    placeholder="Enter donor name"
+    required
+  />
+</div>
 
-              <label htmlFor="amount">
-                Amount (PHP)
-              </label>
+<div className="form-group">
+  <label htmlFor="amount">
+    Amount (PHP)
+  </label>
 
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                placeholder="0.00"
-                required
-              />
+  <input
+    id="amount"
+    name="amount"
+    type="number"
+    min="0.01"
+    step="0.01"
+    value={formData.amount}
+    onChange={handleChange}
+    placeholder="0.00"
+    required
+  />
+</div>
 
-              <label htmlFor="donation_date">
-                Donation Date
-              </label>
+<div className="form-group">
+  <label htmlFor="donation_date">
+    Donation Date
+  </label>
 
-              <input
-                id="donation_date"
-                name="donation_date"
-                type="date"
-                value={formData.donation_date}
-                onChange={handleChange}
-                required
-              />
+  <input
+    id="donation_date"
+    name="donation_date"
+    type="date"
+    value={formData.donation_date}
+    onChange={handleChange}
+    required
+  />
+</div>
 
-              <label htmlFor="payment_method">
-                Payment Method
-              </label>
+<div className="form-group">
+  <label htmlFor="payment_method">
+    Payment Method
+  </label>
 
-              <select
-                id="payment_method"
-                name="payment_method"
-                value={formData.payment_method}
-                onChange={handleChange}
-              >
-                <option value="">
-                  Select Payment Method
-                </option>
+  <select
+    id="payment_method"
+    name="payment_method"
+    value={formData.payment_method}
+    onChange={handleChange}
+  >
+    <option value="">
+      Select Payment Method
+    </option>
+    <option value="Cash">Cash</option>
+    <option value="Bank Transfer">
+      Bank Transfer
+    </option>
+    <option value="Check">Check</option>
+    <option value="Online">Online</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
 
-                <option value="Cash">
-                  Cash
-                </option>
+<div className="form-group">
+  <label htmlFor="purpose">
+    Purpose
+  </label>
 
-                <option value="Bank Transfer">
-                  Bank Transfer
-                </option>
+  <input
+    id="purpose"
+    name="purpose"
+    type="text"
+    value={formData.purpose}
+    onChange={handleChange}
+    placeholder="e.g. Educational assistance"
+  />
+</div>
 
-                <option value="Check">
-                  Check
-                </option>
+<div className="form-group">
+  <label htmlFor="notes">
+    Notes
+  </label>
 
-                <option value="Online">
-                  Online
-                </option>
-
-                <option value="Other">
-                  Other
-                </option>
-              </select>
-
-              <label htmlFor="purpose">
-                Purpose
-              </label>
-
-              <input
-                id="purpose"
-                name="purpose"
-                type="text"
-                value={formData.purpose}
-                onChange={handleChange}
-                placeholder="e.g. Educational assistance"
-              />
-
-              <label htmlFor="notes">
-                Notes
-              </label>
-
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Optional notes"
-                rows="5"
-              />
+  <textarea
+    id="notes"
+    name="notes"
+    value={formData.notes}
+    onChange={handleChange}
+    placeholder="Optional notes"
+    rows="5"
+  />
+</div>
 
               <div className="modal-actions">
                 <button

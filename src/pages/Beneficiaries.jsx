@@ -7,6 +7,7 @@ function Beneficiaries({ profile }) {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -75,6 +76,7 @@ function Beneficiaries({ profile }) {
   }
 
   function openAddForm() {
+    setSuccess('')
     setEditingBeneficiary(null)
 
     setFormData({
@@ -90,6 +92,7 @@ function Beneficiaries({ profile }) {
   }
 
   function openEditForm(beneficiary) {
+    setSuccess('')
     setEditingBeneficiary(beneficiary)
 
     setFormData({
@@ -179,9 +182,15 @@ function Beneficiaries({ profile }) {
       }
     }
 
-    await loadData()
-    closeForm()
-    setSaving(false)
+    setSuccess(
+  editingBeneficiary
+    ? 'Beneficiary updated successfully.'
+    : 'Beneficiary created successfully.'
+)
+
+await loadData()
+closeForm()
+setSaving(false)
   }
 
   async function handleDelete(beneficiary) {
@@ -192,6 +201,7 @@ function Beneficiaries({ profile }) {
     if (!confirmed) return
 
     setError('')
+    setSuccess('')
 
     const { error } = await supabase
       .from('beneficiaries')
@@ -204,6 +214,7 @@ function Beneficiaries({ profile }) {
       return
     }
 
+    setSuccess('Beneficiary deleted successfully.')
     await loadData()
   }
 
@@ -249,44 +260,128 @@ function Beneficiaries({ profile }) {
         )}
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {success && (
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
 
-      <div className="filters">
-        <input
-          type="text"
-          placeholder="Search beneficiaries..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
-        <select
-          value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(event.target.value)
-          }
-        >
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="completed">Completed</option>
-        </select>
-      </div>
+      <div className="page-toolbar beneficiaries-toolbar">
+  <div className="beneficiary-filter-controls">
+    <div className="search-field">
+      <input
+        type="search"
+        aria-label="Search beneficiaries"
+        placeholder="Search beneficiaries..."
+        value={search}
+        onChange={(event) =>
+          setSearch(event.target.value)
+        }
+      />
+    </div>
 
-      <div className="table-container">
+    <select
+      className="filter-select"
+      aria-label="Filter beneficiaries by status"
+      value={statusFilter}
+      onChange={(event) =>
+        setStatusFilter(event.target.value)
+      }
+    >
+      <option value="all">
+        All Statuses
+      </option>
+
+      <option value="active">
+        Active
+      </option>
+
+      <option value="inactive">
+        Inactive
+      </option>
+
+      <option value="completed">
+        Completed
+      </option>
+    </select>
+  </div>
+
+  {!loading && (
+    <span className="toolbar-count">
+      {filteredBeneficiaries.length}{' '}
+      {filteredBeneficiaries.length === 1
+        ? 'beneficiary'
+        : 'beneficiaries'}
+    </span>
+  )}
+</div>
+
         {loading ? (
-          <p className="empty-state">
-            Loading beneficiaries...
-          </p>
-        ) : filteredBeneficiaries.length === 0 ? (
-          <p className="empty-state">
-            No beneficiaries found.
-          </p>
-        ) : (
-          <table>
+  <div
+    className="content-state"
+    role="status"
+  >
+    <div className="loading-spinner"></div>
+
+    <div>
+      <strong>Loading beneficiaries</strong>
+      <span>
+        Please wait while we retrieve the latest records.
+      </span>
+    </div>
+  </div>
+) : filteredBeneficiaries.length === 0 ? (
+  <div className="content-state">
+    <div>
+      <strong>
+        {search || statusFilter !== 'all'
+          ? 'No matching beneficiaries'
+          : 'No beneficiaries yet'}
+      </strong>
+
+      <span>
+        {search || statusFilter !== 'all'
+          ? 'No beneficiaries match the current search or filter.'
+          : canManage
+            ? 'Add your first beneficiary to get started.'
+            : 'There are currently no beneficiaries to display.'}
+      </span>
+    </div>
+
+    {(search || statusFilter !== 'all') && (
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => {
+          setSearch('')
+          setStatusFilter('all')
+        }}
+      >
+        Clear Filters
+      </button>
+    )}
+  </div>
+) : (
+  <div className="table-container">
+    <table>
             <thead>
               <tr>
                 <th>Name</th>
@@ -301,11 +396,11 @@ function Beneficiaries({ profile }) {
             <tbody>
               {filteredBeneficiaries.map((beneficiary) => (
                 <tr key={beneficiary.id}>
-                  <td>
-                    <strong>
-                      {beneficiary.full_name}
-                    </strong>
-                  </td>
+                  <td className="beneficiary-name-cell">
+  <strong>
+    {beneficiary.full_name}
+  </strong>
+</td>
 
                   <td>
                     {beneficiary.programs?.name || '—'}
@@ -327,39 +422,43 @@ function Beneficiaries({ profile }) {
                       : '—'}
                   </td>
 
-                  <td>
-                    {beneficiary.notes || '—'}
-                  </td>
+                  <td className="beneficiary-notes-cell">
+  {beneficiary.notes || '—'}
+</td>
 
                   <td>
-                    {canManage && (
-                      <button
-                        className="table-button"
-                        onClick={() =>
-                          openEditForm(beneficiary)
-                        }
-                      >
-                        Edit
-                      </button>
-                    )}
+  <div className="action-buttons">
+    {canManage && (
+      <button
+        type="button"
+        className="table-button"
+        onClick={() =>
+          openEditForm(beneficiary)
+        }
+      >
+        Edit
+      </button>
+    )}
 
-                    {profile?.role === 'admin' && (
-                      <button
-                        className="table-button danger"
-                        onClick={() =>
-                          handleDelete(beneficiary)
-                        }
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
+    {profile?.role === 'admin' && (
+      <button
+        type="button"
+        className="table-button danger"
+        onClick={() =>
+          handleDelete(beneficiary)
+        }
+      >
+        Delete
+      </button>
+    )}
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        )}
-      </div>
+              </table>
+  </div>
+)}
 
       {showForm && (
         <div className="modal-overlay">
@@ -372,105 +471,117 @@ function Beneficiaries({ profile }) {
               </h2>
 
               <button
-                className="close-button"
-                onClick={closeForm}
-              >
-                ×
-              </button>
+  type="button"
+  className="close-button"
+  onClick={closeForm}
+  aria-label="Close beneficiary form"
+>
+  ×
+</button>
             </div>
 
             <form onSubmit={handleSubmit}>
-              <label htmlFor="full_name">
-                Full Name
-              </label>
+              <div className="form-group">
+  <label htmlFor="full_name">
+    Full Name
+  </label>
 
-              <input
-                id="full_name"
-                name="full_name"
-                type="text"
-                value={formData.full_name}
-                onChange={handleChange}
-                placeholder="Enter beneficiary name"
-                required
-              />
+  <input
+    id="full_name"
+    name="full_name"
+    type="text"
+    value={formData.full_name}
+    onChange={handleChange}
+    placeholder="Enter beneficiary name"
+    required
+  />
+</div>
 
-              <label htmlFor="program_id">
-                Program
-              </label>
+<div className="form-group">
+  <label htmlFor="program_id">
+    Program
+  </label>
 
-              <select
-                id="program_id"
-                name="program_id"
-                value={formData.program_id}
-                onChange={handleChange}
-              >
-                <option value="">
-                  No Program Assigned
-                </option>
+  <select
+    id="program_id"
+    name="program_id"
+    value={formData.program_id}
+    onChange={handleChange}
+  >
+    <option value="">
+      No Program Assigned
+    </option>
 
-                {programs
-                  .filter(
-                    (program) =>
-                      program.status === 'active' ||
-                      program.id === Number(formData.program_id)
-                  )
-                  .map((program) => (
-                    <option
-                      key={program.id}
-                      value={program.id}
-                    >
-                      {program.name}
-                    </option>
-                  ))}
-              </select>
+    {programs
+      .filter(
+        (program) =>
+          program.status === 'active' ||
+          program.id === Number(formData.program_id)
+      )
+      .map((program) => (
+        <option
+          key={program.id}
+          value={program.id}
+        >
+          {program.name}
+        </option>
+      ))}
+  </select>
+</div>
 
-              <label htmlFor="status">
-                Status
-              </label>
+<div className="form-group">
+  <label htmlFor="status">
+    Status
+  </label>
 
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="active">
-                  Active
-                </option>
+  <select
+    id="status"
+    name="status"
+    value={formData.status}
+    onChange={handleChange}
+  >
+    <option value="active">
+      Active
+    </option>
 
-                <option value="inactive">
-                  Inactive
-                </option>
+    <option value="inactive">
+      Inactive
+    </option>
 
-                <option value="completed">
-                  Completed
-                </option>
-              </select>
+    <option value="completed">
+      Completed
+    </option>
+  </select>
+</div>
 
-              <label htmlFor="date_registered">
-                Date Registered
-              </label>
+<div className="form-group">
+  <label htmlFor="date_registered">
+    Date Registered
+  </label>
 
-              <input
-                id="date_registered"
-                name="date_registered"
-                type="date"
-                value={formData.date_registered}
-                onChange={handleChange}
-              />
+  <input
+    id="date_registered"
+    name="date_registered"
+    type="date"
+    value={formData.date_registered}
+    onChange={handleChange}
+  />
+</div>
 
-              <label htmlFor="notes">
-                Notes
-              </label>
+<div className="form-group">
+  <label htmlFor="notes">
+    Notes
+  </label>
 
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Optional notes"
-                rows="5"
-              />
+  <textarea
+    id="notes"
+    name="notes"
+    value={formData.notes}
+    onChange={handleChange}
+    placeholder="Optional notes"
+    rows="5"
+  />
+</div>
 
               <div className="modal-actions">
                 <button

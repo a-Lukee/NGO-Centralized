@@ -28,47 +28,105 @@ function PublicPrograms() {
   }
 
   return (
-    <div className="public-page">
-      <section className="public-page-header">
-        <span>OUR PROGRAMS</span>
-        <h1>Programs and Initiatives</h1>
-        <p>
-          Learn about the programs currently being carried
-          out by the organization.
-        </p>
-      </section>
+  <div className="public-page">
+    {/* PAGE HEADER */}
 
-      {loading && <p>Loading programs...</p>}
+    <section className="public-page-header">
+      <span>OUR PROGRAMS</span>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      <h1>Programs and Initiatives</h1>
 
-      {!loading && !error && programs.length === 0 && (
-        <p className="empty-state">
-          No active programs are currently available.
-        </p>
-      )}
+      <p>
+        Explore the programs and initiatives currently
+        being carried out by Minstrels Rhythm of Hope Inc.
+      </p>
+    </section>
 
-      <div className="public-card-grid">
-        {programs.map((program) => (
-          <article
-            className="public-card"
-            key={program.id}
-          >
-            <h2>{program.name}</h2>
+    {/* PROGRAMS */}
+
+    <section className="public-programs-section">
+      <div className="public-programs-container">
+        <div className="public-programs-intro">
+          <div>
+            <span className="section-eyebrow">
+              CURRENT PROGRAMS
+            </span>
+
+            <h2>Supporting Our Communities</h2>
 
             <p>
-              {program.description ||
-                'Program information will be available soon.'}
+              These are the active programs currently
+              managed by the organization.
             </p>
-          </article>
-        ))}
+          </div>
+
+          {!loading && !error && programs.length > 0 && (
+            <span className="public-program-count">
+              {programs.length}{' '}
+              {programs.length === 1 ? 'Program' : 'Programs'}
+            </span>
+          )}
+        </div>
+
+        {loading && (
+          <div className="public-loading-state">
+            <div className="loading-spinner" />
+            <p>Loading programs...</p>
+          </div>
+        )}
+
+        {error && (
+          <div
+            className="feedback-message feedback-error"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && programs.length === 0 && (
+          <div className="public-empty-state">
+            <h3>No Active Programs</h3>
+
+            <p>
+              There are no active programs available to
+              display at this time. Please check back for
+              future updates.
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && programs.length > 0 && (
+          <div className="public-program-grid">
+            {programs.map((program, index) => (
+              <article
+                className="public-program-card"
+                key={program.id}
+              >
+                <div className="public-program-card-top">
+                  <span className="public-program-number">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+
+                  <span className="public-program-status">
+                    Active
+                  </span>
+                </div>
+
+                <h3>{program.name}</h3>
+
+                <p>
+                  {program.description ||
+                    'Program information will be available soon.'}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
-  )
+    </section>
+  </div>
+)
 }
 
 export default PublicPrograms

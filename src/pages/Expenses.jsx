@@ -6,6 +6,7 @@ function Expenses({ profile }) {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -59,6 +60,7 @@ function Expenses({ profile }) {
   }
 
   function openAddForm() {
+    setSuccess('')
     setEditingExpense(null)
 
     setFormData({
@@ -76,6 +78,7 @@ function Expenses({ profile }) {
   }
 
   function openEditForm(expense) {
+    setSuccess('')
     setEditingExpense(expense)
 
     setFormData({
@@ -125,10 +128,13 @@ function Expenses({ profile }) {
       return
     }
 
-    if (!formData.amount || Number(formData.amount) < 0) {
-      setError('Please enter a valid expense amount.')
-      return
-    }
+    if (
+  !formData.amount ||
+  Number(formData.amount) <= 0
+) {
+  setError('Expense amount must be greater than zero.')
+  return
+}
 
     setSaving(true)
     setError('')
@@ -182,9 +188,15 @@ function Expenses({ profile }) {
       }
     }
 
-    await loadExpenses()
-    closeForm()
-    setSaving(false)
+    setSuccess(
+  editingExpense
+    ? 'Expense updated successfully.'
+    : 'Expense recorded successfully.'
+)
+
+await loadExpenses()
+closeForm()
+setSaving(false)
   }
 
   async function handleDelete(expense) {
@@ -195,6 +207,7 @@ function Expenses({ profile }) {
     if (!confirmed) return
 
     setError('')
+    setSuccess('')
 
     const { error } = await supabase
       .from('expenses')
@@ -207,6 +220,7 @@ function Expenses({ profile }) {
       return
     }
 
+    setSuccess('Expense deleted successfully.')
     await loadExpenses()
   }
 
@@ -276,42 +290,82 @@ function Expenses({ profile }) {
         )}
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {success && (
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
 
-      <div className="filters">
-        <input
-          type="text"
-          placeholder="Search expenses..."
-          value={search}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
-        />
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
-        <select
-          value={categoryFilter}
-          onChange={(event) =>
-            setCategoryFilter(event.target.value)
-          }
+      <div className="page-toolbar expenses-toolbar">
+  <div className="expense-filter-controls">
+    <div className="search-field">
+      <input
+        type="search"
+        aria-label="Search expenses"
+        placeholder="Search expenses..."
+        value={search}
+        onChange={(event) =>
+          setSearch(event.target.value)
+        }
+      />
+    </div>
+
+    <select
+      className="filter-select"
+      aria-label="Filter expenses by category"
+      value={categoryFilter}
+      onChange={(event) =>
+        setCategoryFilter(event.target.value)
+      }
+    >
+      <option value="all">
+        All Categories
+      </option>
+
+      {categories.map((category) => (
+        <option
+          key={category}
+          value={category}
         >
-          <option value="all">
-            All Categories
-          </option>
+          {category}
+        </option>
+      ))}
+    </select>
+  </div>
 
-          {categories.map((category) => (
-            <option
-              key={category}
-              value={category}
-            >
-              {category}
-            </option>
-          ))}
-        </select>
-      </div>
+  {!loading && (
+    <div className="financial-toolbar-summary">
+      <span className="toolbar-count">
+        {filteredExpenses.length}{' '}
+        {filteredExpenses.length === 1
+          ? 'expense'
+          : 'expenses'}
+      </span>
+
+      <strong className="toolbar-total">
+        {formatCurrency(totalExpenses)}
+      </strong>
+    </div>
+  )}
+</div>
 
       <div className="dashboard-section">
         <strong>
@@ -324,17 +378,54 @@ function Expenses({ profile }) {
         </span>
       </div>
 
-      <div className="table-container">
         {loading ? (
-          <p className="empty-state">
-            Loading expenses...
-          </p>
-        ) : filteredExpenses.length === 0 ? (
-          <p className="empty-state">
-            No expenses found.
-          </p>
-        ) : (
-          <table>
+  <div
+    className="content-state"
+    role="status"
+  >
+    <div className="loading-spinner"></div>
+
+    <div>
+      <strong>Loading expenses</strong>
+      <span>
+        Please wait while we retrieve the latest financial records.
+      </span>
+    </div>
+  </div>
+) : filteredExpenses.length === 0 ? (
+  <div className="content-state">
+    <div>
+      <strong>
+        {search || categoryFilter !== 'all'
+          ? 'No matching expenses'
+          : 'No expenses yet'}
+      </strong>
+
+      <span>
+        {search || categoryFilter !== 'all'
+          ? 'No expenses match the current search or category filter.'
+          : canManage
+            ? 'Record your first expense to get started.'
+            : 'There are currently no expenses to display.'}
+      </span>
+    </div>
+
+    {(search || categoryFilter !== 'all') && (
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => {
+          setSearch('')
+          setCategoryFilter('all')
+        }}
+      >
+        Clear Filters
+      </button>
+    )}
+  </div>
+) : (
+  <div className="table-container">
+    <table>
             <thead>
               <tr>
                 <th>Category</th>
@@ -350,19 +441,21 @@ function Expenses({ profile }) {
             <tbody>
               {filteredExpenses.map((expense) => (
                 <tr key={expense.id}>
-                  <td>
-                    <strong>
-                      {expense.category}
-                    </strong>
-                  </td>
+                  <td className="expense-category-cell">
+  <strong>
+    {expense.category}
+  </strong>
+</td>
 
-                  <td>
-                    {expense.description}
-                  </td>
+                  <td className="expense-description-cell">
+  {expense.description}
+</td>
 
-                  <td>
-                    {formatCurrency(expense.amount)}
-                  </td>
+                  <td className="expense-amount-cell">
+  <strong>
+    {formatCurrency(expense.amount)}
+  </strong>
+</td>
 
                   <td>
                     {expense.expense_date
@@ -372,43 +465,47 @@ function Expenses({ profile }) {
                       : '—'}
                   </td>
 
-                  <td>
-                    {expense.notes || '—'}
-                  </td>
+                  <td className="expense-notes-cell">
+  {expense.notes || '—'}
+</td>
 
                   <td>
                     {expense.profiles?.full_name || '—'}
                   </td>
 
                   <td>
-                    {canManage && (
-                      <button
-                        className="table-button"
-                        onClick={() =>
-                          openEditForm(expense)
-                        }
-                      >
-                        Edit
-                      </button>
-                    )}
+  <div className="action-buttons">
+    {canManage && (
+      <button
+        type="button"
+        className="table-button"
+        onClick={() =>
+          openEditForm(expense)
+        }
+      >
+        Edit
+      </button>
+    )}
 
-                    {profile?.role === 'admin' && (
-                      <button
-                        className="table-button danger"
-                        onClick={() =>
-                          handleDelete(expense)
-                        }
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
+    {profile?.role === 'admin' && (
+      <button
+        type="button"
+        className="table-button danger"
+        onClick={() =>
+          handleDelete(expense)
+        }
+      >
+        Delete
+      </button>
+    )}
+  </div>
+</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+  </div>
+)}
 
       {showForm && (
         <div className="modal-overlay">
@@ -421,106 +518,94 @@ function Expenses({ profile }) {
               </h2>
 
               <button
-                className="close-button"
-                onClick={closeForm}
-              >
-                ×
-              </button>
+  type="button"
+  className="close-button"
+  onClick={closeForm}
+  aria-label="Close expense form"
+>
+  ×
+</button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="category">
-                Category
-              </label>
+            <div className="form-group">
+  <label htmlFor="category">
+    Category
+  </label>
 
-              <input
-                id="category"
-                name="category"
-                type="text"
-                value={formData.category}
-                onChange={handleChange}
-                placeholder="e.g. Transportation"
-                required
-              />
+  <input
+    id="category"
+    name="category"
+    type="text"
+    value={formData.category}
+    onChange={handleChange}
+    placeholder="e.g. Transportation"
+    required
+  />
+</div>
 
-              <label htmlFor="description">
-                Description
-              </label>
+<div className="form-group">
+  <label htmlFor="description">
+    Description
+  </label>
 
-              <input
-                id="description"
-                name="description"
-                type="text"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe the expense"
-                required
-              />
+  <input
+    id="description"
+    name="description"
+    type="text"
+    value={formData.description}
+    onChange={handleChange}
+    placeholder="Describe the expense"
+    required
+  />
+</div>
 
-              <label htmlFor="amount">
-                Amount (PHP)
-              </label>
+<div className="form-group">
+  <label htmlFor="amount">
+    Amount (PHP)
+  </label>
 
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                placeholder="0.00"
-                required
-              />
+  <input
+    id="amount"
+    name="amount"
+    type="number"
+    min="0.01"
+    step="0.01"
+    value={formData.amount}
+    onChange={handleChange}
+    placeholder="0.00"
+    required
+  />
+</div>
 
-              <label htmlFor="expense_date">
-                Expense Date
-              </label>
+<div className="form-group">
+  <label htmlFor="expense_date">
+    Expense Date
+  </label>
 
-              <input
-                id="expense_date"
-                name="expense_date"
-                type="date"
-                value={formData.expense_date}
-                onChange={handleChange}
-                required
-              />
+  <input
+    id="expense_date"
+    name="expense_date"
+    type="date"
+    value={formData.expense_date}
+    onChange={handleChange}
+    required
+  />
+</div>
 
-              <label htmlFor="notes">
-                Notes
-              </label>
+<div className="form-group">
+  <label htmlFor="notes">
+    Notes
+  </label>
 
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Optional notes"
-                rows="5"
-              />
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={closeForm}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={saving}
-                >
-                  {saving
-                    ? 'Saving...'
-                    : editingExpense
-                      ? 'Save Changes'
-                      : 'Record Expense'}
-                </button>
-              </div>
-            </form>
+  <textarea
+    id="notes"
+    name="notes"
+    value={formData.notes}
+    onChange={handleChange}
+    placeholder="Optional notes"
+    rows="5"
+  />
+</div>
           </div>
         </div>
       )}

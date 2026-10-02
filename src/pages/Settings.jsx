@@ -165,7 +165,7 @@ function Settings({ profile }) {
   }
 
   return (
-    <div>
+    <div className="page">
       <div className="page-header">
         <div>
           <h1>Settings</h1>
@@ -175,72 +175,106 @@ function Settings({ profile }) {
         </div>
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
       {success && (
-        <div className="success-message">
-          {success}
-        </div>
-      )}
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
+
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
       <div className="settings-grid">
         {/* ACCOUNT INFORMATION */}
 
         <div className="form-card">
-          <h2>My Account</h2>
+  <div className="settings-card-header">
+    <h2>My Account</h2>
+    <p>
+      Review your account information and update
+      your display name.
+    </p>
+  </div>
 
           <form onSubmit={handleProfileUpdate}>
             <div className="form-group">
-              <label>Full Name</label>
+            <label htmlFor="settings_full_name">
+              Full Name
+            </label>
 
-              <input
-                type="text"
-                value={fullName}
-                onChange={(event) =>
-                  setFullName(event.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Email Address</label>
-
-              <input
-                type="email"
-                value={email}
-                disabled
-              />
-
-              <small>
-                Email address is managed by
-                Supabase Authentication.
-              </small>
-            </div>
+  <input
+    id="settings_full_name"
+    type="text"
+    value={fullName}
+    onChange={(event) =>
+      setFullName(event.target.value)
+    }
+    required
+  />
+</div>
 
             <div className="form-group">
-              <label>Role</label>
+  <label htmlFor="settings_email">
+    Email Address
+  </label>
 
-              <input
-                type="text"
-                value={formatRole(profile?.role)}
-                disabled
-              />
-            </div>
+  <input
+    id="settings_email"
+    type="email"
+    value={email}
+    disabled
+  />
+
+  <span className="form-hint">
+    Your email address is linked to your staff account
+    and cannot be changed here.
+  </span>
+</div>
 
             <div className="form-group">
-              <label>Account Created</label>
+  <label htmlFor="settings_role">
+    Role
+  </label>
 
-              <input
-                type="text"
-                value={formatDate(createdAt)}
-                disabled
-              />
-            </div>
+  <input
+    id="settings_role"
+    type="text"
+    value={formatRole(profile?.role)}
+    disabled
+  />
+
+  <span className="form-hint">
+    Staff roles are managed by an administrator.
+  </span>
+</div>
+
+            <div className="form-group">
+  <label htmlFor="settings_created">
+    Account Created
+  </label>
+
+  <input
+    id="settings_created"
+    type="text"
+    value={formatDate(createdAt)}
+    disabled
+  />
+</div>
 
             <button
               type="submit"
@@ -257,38 +291,56 @@ function Settings({ profile }) {
         {/* SECURITY */}
 
         <div className="form-card">
-          <h2>Security</h2>
+  <div className="settings-card-header">
+    <h2>Security</h2>
+    <p>
+      Update the password used to access your
+      staff account.
+    </p>
+  </div>
 
           <form onSubmit={handlePasswordChange}>
             <div className="form-group">
-              <label>New Password</label>
+  <label htmlFor="settings_new_password">
+    New Password
+  </label>
 
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(event) =>
-                  setNewPassword(event.target.value)
-                }
-                minLength={6}
-                required
-              />
-            </div>
+  <input
+    id="settings_new_password"
+    type="password"
+    value={newPassword}
+    onChange={(event) =>
+      setNewPassword(event.target.value)
+    }
+    placeholder="Minimum 6 characters"
+    minLength={6}
+    autoComplete="new-password"
+    required
+  />
 
-            <div className="form-group">
-              <label>Confirm New Password</label>
+  <span className="form-hint">
+    Use at least 6 characters.
+  </span>
+</div>
 
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(event) =>
-                  setConfirmPassword(
-                    event.target.value
-                  )
-                }
-                minLength={6}
-                required
-              />
-            </div>
+<div className="form-group">
+  <label htmlFor="settings_confirm_password">
+    Confirm New Password
+  </label>
+
+  <input
+    id="settings_confirm_password"
+    type="password"
+    value={confirmPassword}
+    onChange={(event) =>
+      setConfirmPassword(event.target.value)
+    }
+    placeholder="Enter the new password again"
+    minLength={6}
+    autoComplete="new-password"
+    required
+  />
+</div>
 
             <button
               type="submit"
@@ -301,21 +353,22 @@ function Settings({ profile }) {
             </button>
           </form>
 
-          <hr />
+          <div className="settings-danger-zone">
+  <div>
+    <h3>Sign Out</h3>
+    <p>
+      End your current staff session on this device.
+    </p>
+  </div>
 
-          <h3>Sign Out</h3>
-
-          <p>
-            Sign out of your current staff account.
-          </p>
-
-          <button
-            type="button"
-            className="danger-button"
-            onClick={handleSignOut}
-          >
-            Sign Out
-          </button>
+  <button
+    type="button"
+    className="table-button danger"
+    onClick={handleSignOut}
+  >
+    Sign Out
+  </button>
+</div>
         </div>
       </div>
     </div>

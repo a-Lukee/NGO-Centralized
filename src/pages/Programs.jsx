@@ -5,6 +5,7 @@ function Programs({ profile }) {
   const [programs, setPrograms] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -47,6 +48,7 @@ function Programs({ profile }) {
   }
 
   function openAddForm() {
+    setSuccess('')
     setEditingProgram(null)
 
     setFormData({
@@ -60,6 +62,7 @@ function Programs({ profile }) {
   }
 
   function openEditForm(program) {
+    setSuccess('')
     setEditingProgram(program)
 
     setFormData({
@@ -142,6 +145,12 @@ function Programs({ profile }) {
       }
     }
 
+    setSuccess(
+  editingProgram
+    ? 'Program updated successfully.'
+    : 'Program created successfully.'
+)
+
     await loadPrograms()
     closeForm()
     setSaving(false)
@@ -157,6 +166,7 @@ function Programs({ profile }) {
     }
 
     setError('')
+    setSuccess('')
 
     const { error } = await supabase
       .from('programs')
@@ -171,6 +181,7 @@ function Programs({ profile }) {
       return
     }
 
+    setSuccess('Program deleted successfully.')
     await loadPrograms()
   }
 
@@ -218,144 +229,194 @@ function Programs({ profile }) {
 
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {success && (
+  <div
+    className="feedback-message feedback-success"
+    role="status"
+  >
+    <div>
+      <strong>Success</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
 
-      <div className="filters">
+{error && (
+  <div
+    className="feedback-message feedback-error"
+    role="alert"
+  >
+    <div>
+      <strong>Something went wrong</strong>
+      <span>{error}</span>
+    </div>
+  </div>
+)}
 
-        <input
-          type="text"
-          placeholder="Search programs..."
-          value={search}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
-        />
+      <div className="page-toolbar programs-toolbar">
+  <div className="program-filter-controls">
+    <div className="search-field">
+      <input
+        type="search"
+        aria-label="Search programs"
+        placeholder="Search programs..."
+        value={search}
+        onChange={(event) =>
+          setSearch(event.target.value)
+        }
+      />
+    </div>
 
-        <select
-          value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(event.target.value)
-          }
-        >
-          <option value="all">
-            All Statuses
-          </option>
+    <select
+      className="filter-select"
+      aria-label="Filter programs by status"
+      value={statusFilter}
+      onChange={(event) =>
+        setStatusFilter(event.target.value)
+      }
+    >
+      <option value="all">
+        All Statuses
+      </option>
 
-          <option value="active">
-            Active
-          </option>
+      <option value="active">
+        Active
+      </option>
 
-          <option value="inactive">
-            Inactive
-          </option>
-        </select>
+      <option value="inactive">
+        Inactive
+      </option>
+    </select>
+  </div>
 
-      </div>
-
-      <div className="table-container">
+  {!loading && (
+    <span className="toolbar-count">
+      {filteredPrograms.length}{' '}
+      {filteredPrograms.length === 1
+        ? 'program'
+        : 'programs'}
+    </span>
+  )}
+</div>
 
         {loading ? (
-          <p className="empty-state">
-            Loading programs...
-          </p>
-        ) : filteredPrograms.length === 0 ? (
-          <p className="empty-state">
-            No programs found.
-          </p>
-        ) : (
-          <table>
+  <div
+    className="content-state"
+    role="status"
+  >
+    <div className="loading-spinner"></div>
 
-            <thead>
-              <tr>
-                <th>Program Name</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+    <div>
+      <strong>Loading programs</strong>
+      <span>
+        Please wait while we retrieve the latest records.
+      </span>
+    </div>
+  </div>
+) : filteredPrograms.length === 0 ? (
+  <div className="content-state">
+    <div>
+      <strong>
+        {search || statusFilter !== 'all'
+          ? 'No matching programs'
+          : 'No programs yet'}
+      </strong>
 
-            <tbody>
+      <span>
+        {search || statusFilter !== 'all'
+          ? 'No programs match the current search or filter.'
+          : 'Create your first program to get started.'}
+      </span>
+    </div>
 
-              {filteredPrograms.map(
-                (program) => (
-                  <tr key={program.id}>
+    {(search || statusFilter !== 'all') && (
+      <button
+        type="button"
+        className="secondary-button"
+        onClick={() => {
+          setSearch('')
+          setStatusFilter('all')
+        }}
+      >
+        Clear Filters
+      </button>
+    )}
+  </div>
+) : (
+  <div className="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Program Name</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
 
-                    <td>
-                      <strong>
-                        {program.name}
-                      </strong>
-                    </td>
+      <tbody>
+        {filteredPrograms.map((program) => (
+          <tr key={program.id}>
+            <td className="program-name-cell">
+              <strong>
+                {program.name}
+              </strong>
+            </td>
 
-                    <td>
-                      {program.description ||
-                        '—'}
-                    </td>
+            <td className="program-description-cell">
+              {program.description || '—'}
+            </td>
 
-                    <td>
-                      <span
-                        className={`status-badge ${program.status}`}
-                      >
-                        {program.status}
-                      </span>
-                    </td>
+            <td>
+              <span
+                className={`status-badge ${program.status}`}
+              >
+                {program.status}
+              </span>
+            </td>
 
-                    <td>
-                      {new Date(
-                        program.created_at
-                      ).toLocaleDateString(
-                        'en-PH'
-                      )}
-                    </td>
+            <td>
+              {new Date(
+                program.created_at
+              ).toLocaleDateString('en-PH')}
+            </td>
 
-                    <td>
+            <td>
+              <div className="action-buttons">
+                {(profile?.role === 'admin' ||
+                  profile?.role ===
+                    'program_coordinator') && (
+                  <button
+                    type="button"
+                    className="table-button"
+                    onClick={() =>
+                      openEditForm(program)
+                    }
+                  >
+                    Edit
+                  </button>
+                )}
 
-                      {(profile?.role ===
-                        'admin' ||
-                        profile?.role ===
-                          'program_coordinator') && (
-                        <button
-                          className="table-button"
-                          onClick={() =>
-                            openEditForm(
-                              program
-                            )
-                          }
-                        >
-                          Edit
-                        </button>
-                      )}
-
-                      {profile?.role ===
-                        'admin' && (
-                        <button
-                          className="table-button danger"
-                          onClick={() =>
-                            handleDelete(
-                              program
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      )}
-
-                    </td>
-
-                  </tr>
-                )
-              )}
-
-            </tbody>
-
-          </table>
-        )}
-
-      </div>
+                {profile?.role === 'admin' && (
+                  <button
+                    type="button"
+                    className="table-button danger"
+                    onClick={() =>
+                      handleDelete(program)
+                    }
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
       {showForm && (
         <div className="modal-overlay">
@@ -371,61 +432,69 @@ function Programs({ profile }) {
               </h2>
 
               <button
-                className="close-button"
-                onClick={closeForm}
-              >
-                ×
-              </button>
+  type="button"
+  className="close-button"
+  onClick={closeForm}
+  aria-label="Close program form"
+>
+  ×
+</button>
 
             </div>
 
             <form onSubmit={handleSubmit}>
 
-              <label htmlFor="name">
-                Program Name
-              </label>
+              <div className="form-group">
+  <label htmlFor="name">
+    Program Name
+  </label>
 
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter program name"
-                required
-              />
+  <input
+    id="name"
+    name="name"
+    type="text"
+    value={formData.name}
+    onChange={handleChange}
+    placeholder="Enter program name"
+    required
+  />
+</div>
 
-              <label htmlFor="description">
-                Description
-              </label>
+<div className="form-group">
+  <label htmlFor="description">
+    Description
+  </label>
 
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe the program"
-                rows="5"
-              />
+  <textarea
+    id="description"
+    name="description"
+    value={formData.description}
+    onChange={handleChange}
+    placeholder="Describe the program"
+    rows="5"
+  />
+</div>
 
-              <label htmlFor="status">
-                Status
-              </label>
+<div className="form-group">
+  <label htmlFor="status">
+    Status
+  </label>
 
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="active">
-                  Active
-                </option>
+  <select
+    id="status"
+    name="status"
+    value={formData.status}
+    onChange={handleChange}
+  >
+    <option value="active">
+      Active
+    </option>
 
-                <option value="inactive">
-                  Inactive
-                </option>
-              </select>
+    <option value="inactive">
+      Inactive
+    </option>
+  </select>
+</div>
 
               <div className="modal-actions">
 
