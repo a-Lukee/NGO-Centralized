@@ -474,6 +474,7 @@ setSaving(false)
 </button>
             </div>
 
+                  <form onSubmit={handleSubmit}>
             <div className="form-group">
   <label htmlFor="sponsor_name">
     Sponsor Name
@@ -552,6 +553,30 @@ setSaving(false)
     rows="5"
   />
 </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={closeForm}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={saving}
+                >
+                  {saving
+                    ? 'Saving...'
+                    : editingSponsorship
+                      ? 'Update Sponsorship'
+                      : 'Record Sponsorship'}
+                </button>
+              </div>
+            </form>
+
           </div>
         </div>
       )}

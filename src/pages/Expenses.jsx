@@ -527,6 +527,7 @@ setSaving(false)
 </button>
             </div>
 
+<form onSubmit={handleSubmit}>
             <div className="form-group">
   <label htmlFor="category">
     Category
@@ -606,6 +607,29 @@ setSaving(false)
     rows="5"
   />
 </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={closeForm}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={saving}
+                >
+                  {saving
+                    ? 'Saving...'
+                    : editingExpense
+                      ? 'Update Expense'
+                      : 'Record Expense'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
